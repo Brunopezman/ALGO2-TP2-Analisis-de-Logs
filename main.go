@@ -27,18 +27,29 @@ func main() {
 		switch comando {
 		case _AGREGAR_ARCHIVO:
 			logs.Agregar_archivo(elementos[1])
-		case _VER_VISITANTES:
-			if len(elementos) == 1 {
-				logs.Ver_visitantes("0.0.0.0", "255.255.255.255")
-				fmt.Fprintln(os.Stdout, "OK")
-				continue
+			listaIPs := logs.DOS()
+			if len(listaIPs) != 0 {
+				for _, ip := range listaIPs {
+					fmt.Fprintf(os.Stdout, "DoS: %s", ip)
+				}
 			}
-			logs.Ver_visitantes(elementos[1], elementos[2])
-
+			fmt.Fprintln(os.Stdout, "OK")
+		case _VER_VISITANTES:
+			visitantes := logs.Ver_visitantes(elementos[1], elementos[2])
+			fmt.Fprintf(os.Stdout, "%s\n", "Visitantes:")
+			for _, visitante := range visitantes {
+				fmt.Fprintf(os.Stdout, "\t%s\n", visitante)
+			}
+			fmt.Fprintln(os.Stdout, "OK")
 		case _VER_MAS_VISITADOS:
 			n, _ := strconv.Atoi(elementos[1])
 			mas_visitados := logs.Ver_mas_visitados(n)
-
+			fmt.Fprintf(os.Stdout, "%s\n", "Sitios más visitados:")
+			for _, visitado := range mas_visitados {
+				sitio, visitas := visitado.Ver_par()
+				fmt.Fprintf(os.Stdout, "\t%s - %d\n", sitio, visitas)
+			}
+			fmt.Fprintln(os.Stdout, "OK")
 		}
 
 	}

@@ -9,4 +9,7 @@ type ServidorLogs interface {
 
 	// Muestra los n recursos más solicitados.
 	Ver_mas_visitados(n int) []parSitioVisitas
+
+	// Identifica posibles situaciones de sobrecarga de solicitudes de un mismo cliente en un tiempo breve sobre un mismo servidor.
+	DOS() []string
 }
