@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	comandos "tp2/comandos"
+	"tp2/comandos"
 )
 
 const (
@@ -17,13 +17,12 @@ const (
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-
 	for scanner.Scan() {
+
 		expresion := scanner.Text()
 		elementos := strings.Fields(expresion)
 		comando := elementos[0]
 		logs := comandos.CrearDetectorDeLogs()
-
 		switch comando {
 		case _AGREGAR_ARCHIVO:
 			logs.Agregar_archivo(elementos[1])
@@ -39,6 +38,7 @@ func main() {
 			fmt.Fprintf(os.Stdout, "%s\n", "Visitantes:")
 			for _, visitante := range visitantes {
 				fmt.Fprintf(os.Stdout, "\t%s\n", visitante)
+
 			}
 			fmt.Fprintln(os.Stdout, "OK")
 		case _VER_MAS_VISITADOS:
@@ -50,6 +50,9 @@ func main() {
 				fmt.Fprintf(os.Stdout, "\t%s - %d\n", sitio, visitas)
 			}
 			fmt.Fprintln(os.Stdout, "OK")
+		default:
+			fmt.Fprintf(os.Stderr, "Error en comando %s", comando)
+			return
 		}
 
 	}

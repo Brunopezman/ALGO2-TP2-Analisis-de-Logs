@@ -2,7 +2,9 @@ package comandos
 
 import (
 	"bufio"
+	"log"
 	"os"
+
 	"strconv"
 	"strings"
 	TDAHeap "tdas/cola_prioridad"
@@ -51,15 +53,21 @@ func compararIp(ip1, ip2 string) int {
 }
 
 func (detector *detectorLogs) Agregar_archivo(ruta string) {
-	scanner := bufio.NewScanner(os.Stdin)
+	file, err := os.Open(ruta)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
 	for scanner.Scan() {
 		expresion := scanner.Text()
-		elementos := strings.Fields(expresion)
+		elementos := strings.Split(expresion, "\t")
 		ip := elementos[0]
 		tiempo, _ := time.Parse("2006-01-02T15:04:05-07:00", elementos[1])
-
 		if !detector.visitantes.Pertenece(ip) {
-			detector.visitantes.Guardar(ip, []time.Time{})
+			detector.visitantes.Guardar(ip, []time.Time{tiempo})
 		} else {
 			detector.visitantes.Guardar(ip, append(detector.visitantes.Obtener(ip), tiempo))
 		}
@@ -72,6 +80,9 @@ func (detector *detectorLogs) Agregar_archivo(ruta string) {
 			detector.sitios_visitados.Guardar(sitio, detector.sitios_visitados.Obtener(sitio)+1)
 		}
 
+	}
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
 	}
 
 }
@@ -138,7 +149,6 @@ func (detector *detectorLogs) Ver_mas_visitados(n int) []parSitioVisitas {
 	for i := 0; i < n && !mas_visitados.EstaVacia(); i++ {
 		resultado = append(resultado, mas_visitados.Desencolar())
 	}
-
 	return resultado
 }
 
