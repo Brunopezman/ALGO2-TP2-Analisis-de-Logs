@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	TDAHeap "tdas/cola_prioridad"
@@ -60,7 +61,7 @@ func compararParSitioVisitas(a, b parSitioVisitas) int {
 func (detector *detectorLogs) Agregar_archivo(ruta string) error {
 	file, err := os.Open(ruta)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer file.Close()
 
@@ -101,6 +102,7 @@ func (detector *detectorLogs) DOS() []string {
 			dos = append(dos, ip)
 		}
 	}
+	sort.Strings(dos)
 	return dos
 }
 

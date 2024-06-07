@@ -26,6 +26,7 @@ func main() {
 		switch comando {
 		case _AGREGAR_ARCHIVO:
 			if len(elementos) != 2 {
+				fmt.Fprintf(os.Stderr, "Error en comando %s\n", _AGREGAR_ARCHIVO)
 				return
 			}
 			err := logs.Agregar_archivo(elementos[1])
