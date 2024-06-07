@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"log"
 	"os"
-
 	"strconv"
 	"strings"
 	TDAHeap "tdas/cola_prioridad"
@@ -20,10 +19,6 @@ type detectorLogs struct {
 type parSitioVisitas struct {
 	sitio   string
 	visitas int
-}
-
-func crearParSitioVisitas(sitio string, visitas int) *parSitioVisitas {
-	return &parSitioVisitas{sitio: sitio, visitas: visitas}
 }
 
 func CrearDetectorDeLogs() ServidorLogs {
@@ -52,7 +47,17 @@ func compararIp(ip1, ip2 string) int {
 	return 0
 }
 
-func (detector *detectorLogs) Agregar_archivo(ruta string) {
+func compararParSitioVisitas(a, b parSitioVisitas) int {
+	if a.visitas > b.visitas {
+		return 1
+	}
+	if a.visitas < b.visitas {
+		return -1
+	}
+	return 0
+}
+
+func (detector *detectorLogs) Agregar_archivo(ruta string) error {
 	file, err := os.Open(ruta)
 	if err != nil {
 		log.Fatal(err)
@@ -63,7 +68,7 @@ func (detector *detectorLogs) Agregar_archivo(ruta string) {
 
 	for scanner.Scan() {
 		expresion := scanner.Text()
-		elementos := strings.Split(expresion, "\t")
+		elementos := strings.Fields(expresion)
 		ip := elementos[0]
 		tiempo, _ := time.Parse("2006-01-02T15:04:05-07:00", elementos[1])
 		if !detector.visitantes.Pertenece(ip) {
@@ -85,6 +90,7 @@ func (detector *detectorLogs) Agregar_archivo(ruta string) {
 		log.Fatal(err)
 	}
 
+	return nil
 }
 
 func (detector *detectorLogs) DOS() []string {
@@ -130,26 +136,20 @@ func (detector *detectorLogs) Ver_visitantes(desde string, hasta string) []strin
 	return visitantesEnRango
 }
 
-func (detector *detectorLogs) Ver_mas_visitados(n int) []parSitioVisitas {
+func (d *detectorLogs) Ver_mas_visitados(n int) []parSitioVisitas {
+	heap := TDAHeap.CrearHeap(compararParSitioVisitas)
 
-	var resultado []parSitioVisitas
-
-	mas_visitados := TDAHeap.CrearHeap(func(a, b parSitioVisitas) int {
-		if a.visitas > b.visitas {
-			return a.visitas
-		}
-		return b.visitas
-	})
-
-	for iter := detector.sitios_visitados.Iterador(); iter.HaySiguiente(); iter.Siguiente() {
+	for iter := d.sitios_visitados.Iterador(); iter.HaySiguiente(); iter.Siguiente() {
 		sitio, visitas := iter.VerActual()
-		mas_visitados.Encolar(*crearParSitioVisitas(sitio, visitas))
+		heap.Encolar(parSitioVisitas{sitio: sitio, visitas: visitas})
 	}
 
-	for i := 0; i < n && !mas_visitados.EstaVacia(); i++ {
-		resultado = append(resultado, mas_visitados.Desencolar())
+	var mas_visitados []parSitioVisitas
+	for i := 0; i < n && !heap.EstaVacia(); i++ {
+		mas_visitados = append(mas_visitados, heap.Desencolar())
 	}
-	return resultado
+
+	return mas_visitados
 }
 
 func (par *parSitioVisitas) Ver_par() (string, int) {

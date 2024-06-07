@@ -17,31 +17,45 @@ const (
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
+	logs := comandos.CrearDetectorDeLogs()
 
+	for scanner.Scan() {
 		expresion := scanner.Text()
 		elementos := strings.Fields(expresion)
 		comando := elementos[0]
-		logs := comandos.CrearDetectorDeLogs()
 		switch comando {
 		case _AGREGAR_ARCHIVO:
-			logs.Agregar_archivo(elementos[1])
+			if len(elementos) != 2 {
+				return
+			}
+			err := logs.Agregar_archivo(elementos[1])
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error en comando %s\n", _AGREGAR_ARCHIVO)
+				break
+			}
 			listaIPs := logs.DOS()
 			if len(listaIPs) != 0 {
 				for _, ip := range listaIPs {
-					fmt.Fprintf(os.Stdout, "DoS: %s", ip)
+					fmt.Fprintf(os.Stdout, "DoS: %s\n", ip)
 				}
 			}
 			fmt.Fprintln(os.Stdout, "OK")
 		case _VER_VISITANTES:
+			if len(elementos) != 3 {
+				fmt.Fprintf(os.Stderr, "Error en comando %s\n", _VER_VISITANTES)
+				break
+			}
 			visitantes := logs.Ver_visitantes(elementos[1], elementos[2])
 			fmt.Fprintf(os.Stdout, "%s\n", "Visitantes:")
 			for _, visitante := range visitantes {
 				fmt.Fprintf(os.Stdout, "\t%s\n", visitante)
-
 			}
 			fmt.Fprintln(os.Stdout, "OK")
 		case _VER_MAS_VISITADOS:
+			if len(elementos) != 2 {
+				fmt.Fprintf(os.Stderr, "Error en comando %s\n", _VER_MAS_VISITADOS)
+				break
+			}
 			n, _ := strconv.Atoi(elementos[1])
 			mas_visitados := logs.Ver_mas_visitados(n)
 			fmt.Fprintf(os.Stdout, "%s\n", "Sitios más visitados:")
@@ -51,7 +65,6 @@ func main() {
 			}
 			fmt.Fprintln(os.Stdout, "OK")
 		default:
-			fmt.Fprintf(os.Stderr, "Error en comando %s", comando)
 			return
 		}
 
