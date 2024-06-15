@@ -68,7 +68,6 @@ func main() {
 		default:
 			return
 		}
-
 	}
 	if err := scanner.Err(); err != nil {
 		fmt.Fprintln(os.Stdout, "ERROR", err)

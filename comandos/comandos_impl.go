@@ -57,7 +57,13 @@ func compararParSitioVisitas(a, b parSitioVisitas) int {
 	return 0
 }
 
+func (detector *detectorLogs) vaciarDiccionarios() {
+	detector.visitantes = TDADic.CrearABB[string, []time.Time](compararIp)
+	detector.sitios_visitados = TDADic.CrearHash[string, int]()
+}
+
 func (detector *detectorLogs) Agregar_archivo(ruta string) error {
+	detector.vaciarDiccionarios()
 	file, err := os.Open(ruta)
 	if err != nil {
 		return err
@@ -156,3 +162,15 @@ func (d *detectorLogs) Ver_mas_visitados(n int) []parSitioVisitas {
 func (par *parSitioVisitas) Ver_par() (string, int) {
 	return par.sitio, par.visitas
 }
+
+// func (d *detectorLogs) VaciarServidor() {
+
+// 	for iter := d.visitantes.Iterador(); iter.HaySiguiente(); iter.Siguiente() {
+// 		ip, _ := iter.VerActual()
+// 		d.visitantes.Borrar(ip)
+// 	}
+// 	for iter := d.sitios_visitados.Iterador(); iter.HaySiguiente(); iter.Siguiente() {
+// 		sitio, _ := iter.VerActual()
+// 		d.sitios_visitados.Borrar(sitio)
+// 	}
+// }
