@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"log"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 	TDAHeap "tdas/cola_prioridad"
@@ -102,7 +101,7 @@ func (detector *detectorLogs) DOS() []string {
 			dos = append(dos, ip)
 		}
 	}
-	sort.Strings(dos)
+
 	return dos
 }
 
