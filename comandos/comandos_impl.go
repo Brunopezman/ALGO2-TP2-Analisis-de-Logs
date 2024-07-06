@@ -12,7 +12,7 @@ import (
 )
 
 type detectorLogs struct {
-	visitantes       TDADic.DiccionarioOrdenado[string, []time.Time]
+	visitantes       TDADic.DiccionarioOrdenado[string, string]
 	sitios_visitados TDADic.Diccionario[string, int]
 }
 
@@ -21,10 +21,10 @@ type parSitioVisitas struct {
 	visitas int
 }
 
-func CrearDetectorDeLogs() ServidorLogs {
+func CrearDetectorDeLogs() DetectorLogs {
 
 	return &detectorLogs{
-		visitantes:       TDADic.CrearABB[string, []time.Time](compararIp),
+		visitantes:       TDADic.CrearABB[string, string](compararIp),
 		sitios_visitados: TDADic.CrearHash[string, int](),
 	}
 }
@@ -57,16 +57,13 @@ func compararParSitioVisitas(a, b parSitioVisitas) int {
 	return 0
 }
 
-func (detector *detectorLogs) vaciarDiccionarios() {
-	detector.visitantes = TDADic.CrearABB[string, []time.Time](compararIp)
-	detector.sitios_visitados = TDADic.CrearHash[string, int]()
-}
+func (detector *detectorLogs) AgregarArchivo(ruta string) ([]string, error) {
+	aux := TDADic.CrearABB[string, []time.Time](compararIp)
+	var dos []string
 
-func (detector *detectorLogs) Agregar_archivo(ruta string) error {
-	detector.vaciarDiccionarios()
 	file, err := os.Open(ruta)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer file.Close()
 
@@ -77,10 +74,13 @@ func (detector *detectorLogs) Agregar_archivo(ruta string) error {
 		elementos := strings.Fields(expresion)
 		ip := elementos[0]
 		tiempo, _ := time.Parse("2006-01-02T15:04:05-07:00", elementos[1])
-		if !detector.visitantes.Pertenece(ip) {
-			detector.visitantes.Guardar(ip, []time.Time{tiempo})
+
+		detector.visitantes.Guardar(ip, ip)
+
+		if !aux.Pertenece(ip) {
+			aux.Guardar(ip, []time.Time{tiempo})
 		} else {
-			detector.visitantes.Guardar(ip, append(detector.visitantes.Obtener(ip), tiempo))
+			aux.Guardar(ip, append(aux.Obtener(ip), tiempo))
 		}
 
 		sitio := elementos[3]
@@ -92,24 +92,33 @@ func (detector *detectorLogs) Agregar_archivo(ruta string) error {
 		}
 
 	}
+
+	for iter := aux.Iterador(); iter.HaySiguiente(); iter.Siguiente() {
+		ip, tiempos := iter.VerActual()
+		if esMenorADos(tiempos) {
+			dos = append(dos, ip)
+		}
+
+	}
+
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
 
-	return nil
+	return dos, nil
 }
 
-func (detector *detectorLogs) DOS() []string {
-	var dos []string
-	for iter := detector.visitantes.Iterador(); iter.HaySiguiente(); iter.Siguiente() {
-		ip, listaTiempo := iter.VerActual()
-		if esMenorADos(listaTiempo) {
-			dos = append(dos, ip)
-		}
-	}
+// func (detector *detectorLogs) DOS() []string {
+// 	var dos []string
+// 	for iter := detector.visitantes.Iterador(); iter.HaySiguiente(); iter.Siguiente() {
+// 		ip, listaTiempo := iter.VerActual()
+// 		if esMenorADos(listaTiempo) {
+// 			dos = append(dos, ip)
+// 		}
+// 	}
 
-	return dos
-}
+// 	return dos
+// }
 
 func esMenorADos(listaTiempo []time.Time) bool {
 	if len(listaTiempo) >= 5 {
@@ -129,11 +138,11 @@ func esMenorADos(listaTiempo []time.Time) bool {
 
 }
 
-func (detector *detectorLogs) Ver_visitantes(desde string, hasta string) []string {
+func (detector *detectorLogs) VerVisitantes(desde string, hasta string) []string {
 
 	visitantesEnRango := []string{}
 
-	visitar := func(clave string, dato []time.Time) bool {
+	visitar := func(clave string, dato string) bool {
 		visitantesEnRango = append(visitantesEnRango, clave)
 		return true
 	}
@@ -143,7 +152,7 @@ func (detector *detectorLogs) Ver_visitantes(desde string, hasta string) []strin
 	return visitantesEnRango
 }
 
-func (d *detectorLogs) Ver_mas_visitados(n int) []parSitioVisitas {
+func (d *detectorLogs) VerMasVisitados(n int) []parSitioVisitas {
 	heap := TDAHeap.CrearHeap(compararParSitioVisitas)
 
 	for iter := d.sitios_visitados.Iterador(); iter.HaySiguiente(); iter.Siguiente() {
@@ -159,7 +168,7 @@ func (d *detectorLogs) Ver_mas_visitados(n int) []parSitioVisitas {
 	return mas_visitados
 }
 
-func (par *parSitioVisitas) Ver_par() (string, int) {
+func (par *parSitioVisitas) VerPar() (string, int) {
 	return par.sitio, par.visitas
 }
 
